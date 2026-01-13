@@ -178,4 +178,4 @@ Configured database hosting
 Added monitoring & logging
 ⚠️ Disclaimer
 This project does not process payments or issue refunds.
-It provides a transparent refund-tracking and accountability system based on standardized rules and user-reported outcomes
+It provides a transparent refund-tracking and accountability system based on standardized rules and user-reported outcomes kjjhj
