@@ -1,8 +1,11 @@
-export default function Home() {
+import HeroSection from '@/components/landing/HeroSection'
+import FeatureGrid from '@/components/landing/FeatureGrid'
+
+export default function HomePage() {
   return (
-    <main>
-      <h1>Open Refund Transparency System</h1>
-      <p>Track your refund status publicly.</p>
-    </main>
-  );
+    <>
+      <HeroSection />
+      <FeatureGrid />
+    </>
+  )
 }

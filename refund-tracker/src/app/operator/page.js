@@ -1,57 +1,62 @@
-"use client"
+import RefundTable from '@/components/operator/RefundTable'
+import { prisma } from '@/lib/prisma'
 
-import { useState } from "react"
+export default async function OperatorPage() {
+    const refunds = await prisma.refund.findMany({
+        orderBy: { createdAt: 'desc' }
+    })
 
-export default function OperatorPage() {
-    const [refundId, setRefundId] = useState("")
-    const [status, setStatus] = useState("APPROVED")
-    const [message, setMessage] = useState("")
+    async function processRefund(id) {
+  'use server'
 
-    const handleSubmit = async (e) => {
-        e.preventDefault()
-        setMessage("Updating...")
-
-        const res = await fetch(`/api/refund/${refundId}`, {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ status })
-        })
-
-        const data = await res.json()
-
-        if (data.success) {
-            setMessage("Status updated successfully")
-        } else {
-            setMessage("Failed to update status")
+  await prisma.refund.update({
+    where: { id },
+    data: {
+      status: 'COMPLETED',
+      logs: {
+        create: {
+          action: 'COMPLETED',
+          actor: 'OPERATOR'
         }
+      }
     }
+  })
+}
+
+
+    const pending = refunds.filter(r => r.status !== 'COMPLETED')
 
     return (
-        <div style={{ padding: 40 }}>
-            <h2>Operator Dashboard</h2>
+        <div>
+            <h1>Refund Management</h1>
+            <p style={{ color: '#555' }}>
+                Track and process customer refund requests
+            </p>
 
-            <form onSubmit={handleSubmit}>
-                <input
-                    placeholder="Refund ID"
-                    value={refundId}
-                    onChange={(e) => setRefundId(e.target.value)}
-                    required
-                />
-                <br /><br />
+            <div style={{
+                display: 'flex',
+                gap: 20,
+                marginTop: 20
+            }}>
+                <StatCard label="Total Pending" value={pending.length} />
+                <StatCard label="Completed" value={refunds.length - pending.length} />
+            </div>
 
-                <select value={status} onChange={(e) => setStatus(e.target.value)}>
-                    <option value="APPROVED">APPROVED</option>
-                    <option value="PROCESSED">PROCESSED</option>
-                    <option value="COMPLETED">COMPLETED</option>
-                </select>
-                <br /><br />
+            <RefundTable refunds={refunds} onProcess={processRefund} />
+        </div>
+    )
+}
 
-                <button type="submit">Update Status</button>
-            </form>
-
-            <p>{message}</p>
+function StatCard({ label, value }) {
+    return (
+        <div style={{
+            border: '1px solid #eee',
+            borderRadius: 12,
+            padding: 20,
+            minWidth: 160
+        }}>
+            <div style={{ fontSize: 12, color: '#555' }}>{label}</div>
+            <div style={{ fontSize: 24, fontWeight: 700 }}>{value}</div>
         </div>
     )
 }
