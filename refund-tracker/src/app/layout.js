@@ -1,4 +1,5 @@
 import Navbar from '@/components/layout/Navbar'
+import Container from '@/components/layout/Container'
 import './globals.css'
 
 export default function RootLayout({ children }) {
@@ -6,7 +7,9 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <Navbar />
-        {children}
+        <Container>
+          {children}
+        </Container>
       </body>
     </html>
   )
