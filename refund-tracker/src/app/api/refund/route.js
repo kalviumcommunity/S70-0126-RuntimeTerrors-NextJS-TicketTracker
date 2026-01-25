@@ -1,55 +1,42 @@
-import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
 
 export async function POST(req) {
   try {
-    const body = await req.json();
-    const { ticketId, operator, amount } = body;
+    const body = await req.json()
+    const { ticketId, operator, platform, amount } = body
 
-    if (!ticketId || !operator || !amount) {
+    if (!ticketId || !operator || !platform || !amount) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { success: false, message: "Missing required fields" },
         { status: 400 }
-      );
+      )
     }
 
     const refund = await prisma.refund.create({
       data: {
         ticketId,
         operator,
+        platform,
         amount,
+        status: "INITIATED",
         logs: {
           create: {
-            action: "Refund initiated",
-          },
-        },
-      },
-      include: {
-        logs: true,
-      },
-    });
+            action: "CREATED",
+            actor: "USER"
+          }
+        }
+      }
+    })
 
-    return NextResponse.json(refund, { status: 201 });
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json(
-      { error: "Failed to create refund" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function GET() {
-  try {
-    const refunds = await prisma.refund.findMany({
-      orderBy: { createdAt: "desc" },
-    });
-
-    return NextResponse.json(refunds);
+    return NextResponse.json({
+      success: true,
+      refundId: refund.id
+    })
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to fetch refunds" },
+      { success: false, message: "Failed to create refund" },
       { status: 500 }
-    );
+    )
   }
 }
