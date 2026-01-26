@@ -20,7 +20,7 @@ export default function SearchBar() {
             marginBottom: 20
         }}>
             <input
-                placeholder="Enter PNR or Ticket Number"
+                placeholder="Enter your Refund ID"
                 value={value}
                 onChange={e => setValue(e.target.value)}
                 style={{
