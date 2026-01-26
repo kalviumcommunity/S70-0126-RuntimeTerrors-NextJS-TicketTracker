@@ -1,17 +1,22 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { createRefundSchema } from '@/lib/validators/refund'
 
 export async function POST(req) {
   try {
-    const body = await req.json()
-    const { ticketId, operator, platform, amount } = body
+   const body = await req.json()
 
-    if (!ticketId || !operator || !platform || !amount) {
-      return NextResponse.json(
-        { success: false, message: "Missing required fields" },
-        { status: 400 }
-      )
-    }
+const parsed = createRefundSchema.safeParse(body)
+
+if (!parsed.success) {
+  return NextResponse.json(
+    { error: parsed.error.flatten() },
+    { status: 400 }
+  )
+}
+
+const { ticketId, operator, platform, amount } = parsed.data
+
 
     const refund = await prisma.refund.create({
       data: {

@@ -1,18 +1,23 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { updateRefundStatusSchema } from '@/lib/validators/refund'
+
 
 export async function PATCH(req, { params }) {
   try {
-    const { refundId } = params
     const body = await req.json()
-    const { status } = body
 
-    if (!status) {
-      return NextResponse.json(
-        { success: false, message: "Status is required" },
-        { status: 400 }
-      )
-    }
+const parsed = updateRefundStatusSchema.safeParse(body)
+
+if (!parsed.success) {
+  return NextResponse.json(
+    { error: parsed.error.flatten() },
+    { status: 400 }
+  )
+}
+
+const { status } = parsed.data
+
 
     const refund = await prisma.refund.update({
       where: { id: refundId },
