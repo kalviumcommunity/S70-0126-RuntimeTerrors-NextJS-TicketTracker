@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import RefundTable from '@/components/operator/RefundTable'
 import { prisma } from '@/lib/prisma'
 
