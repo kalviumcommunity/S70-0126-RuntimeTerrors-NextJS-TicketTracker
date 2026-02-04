@@ -1,7 +1,8 @@
+export const dynamic = 'force-dynamic'
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { updateRefundStatusSchema } from '@/lib/validators/refund'
-
+export const revalidate = 0
 
 export async function PATCH(req, { params }) {
   try {
