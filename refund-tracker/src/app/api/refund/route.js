@@ -1,47 +1,41 @@
-import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
-import { createRefundSchema } from '@/lib/validators/refund'
+import { prisma } from '@/lib/prisma'
 
-export async function POST(req) {
-  try {
-   const body = await req.json()
-
-const parsed = createRefundSchema.safeParse(body)
-
-if (!parsed.success) {
-  return NextResponse.json(
-    { error: parsed.error.flatten() },
-    { status: 400 }
-  )
-}
-
-const { ticketId, operator, platform, amount } = parsed.data
-
-
-    const refund = await prisma.refund.create({
-      data: {
-        ticketId,
-        operator,
-        platform,
-        amount,
-        status: "INITIATED",
-        logs: {
-          create: {
-            action: "CREATED",
-            actor: "USER"
-          }
-        }
+export default async function TrackPage({ params }) {
+  const refund = await prisma.refund.findUnique({
+    where: { id: params.refundId },
+    include: {
+      logs: {
+        orderBy: { createdAt: 'asc' }
       }
-    })
+    }
+  })
 
-    return NextResponse.json({
-      success: true,
-      refundId: refund.id
-    })
-  } catch (error) {
-    return NextResponse.json(
-      { success: false, message: "Failed to create refund" },
-      { status: 500 }
+  if (!refund) {
+    return (
+      <div style={{ padding: 40 }}>
+        <h2>Refund not found</h2>
+        <p>Please check your Refund ID.</p>
+      </div>
     )
   }
+
+  return (
+    <div style={{ padding: 40 }}>
+      <h1>Refund Status</h1>
+
+      <p><b>Ticket:</b> {refund.ticketId}</p>
+      <p><b>Amount:</b> ₹{refund.amount}</p>
+      <p><b>Status:</b> {refund.status}</p>
+
+      <h3>Timeline</h3>
+      <ul>
+        {refund.logs.map(log => (
+          <li key={log.id}>
+            {log.action} by {log.actor} —{' '}
+            {new Date(log.createdAt).toLocaleString()}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
 }

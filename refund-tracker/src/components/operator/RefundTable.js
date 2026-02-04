@@ -2,13 +2,9 @@
 
 export default function RefundTable({ refunds, onProcess }) {
     return (
-        <table style={{
-            width: '100%',
-            borderCollapse: 'collapse',
-            marginTop: 20
-        }}>
+        <table style={{ width: '100%', marginTop: 20 }}>
             <thead>
-                <tr style={{ borderBottom: '1px solid #eee', textAlign: 'left' }}>
+                <tr>
                     <th>Refund ID</th>
                     <th>Ticket</th>
                     <th>Amount</th>
@@ -19,35 +15,23 @@ export default function RefundTable({ refunds, onProcess }) {
 
             <tbody>
                 {refunds.map(refund => (
-                    <tr key={refund.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                        <td>{refund.id.slice(0, 8)}</td>
+                    <tr key={refund.id}>
+                        <td>
+                            <a
+                                href={`/track/${refund.id}`}
+                                style={{ color: '#2563eb', textDecoration: 'underline' }}
+                            >
+                                {refund.id.slice(0, 8)}
+                            </a>
+                        </td>
                         <td>{refund.ticketId}</td>
                         <td>₹{refund.amount}</td>
-                        <td>
-                            <span style={{
-                                padding: '4px 10px',
-                                borderRadius: 999,
-                                background: refund.status === 'INITIATED' ? '#fef3c7' : '#dcfce7',
-                                color: '#111',
-                                fontSize: 12
-                            }}>
-                                {refund.status}
-                            </span>
-                        </td>
+                        <td>{refund.status}</td>
                         <td>
                             {refund.status !== 'COMPLETED' && (
-                                <button
-                                    onClick={() => onProcess(refund.id)}
-                                    style={{
-                                        padding: '6px 12px',
-                                        borderRadius: 6,
-                                        border: 'none',
-                                        background: '#2563eb',
-                                        color: '#fff'
-                                    }}
-                                >
-                                    Process Refund
-                                </button>
+                                <form action={onProcess.bind(null, refund.id)}>
+                                    <button type="submit">Process Refund</button>
+                                </form>
                             )}
                         </td>
                     </tr>

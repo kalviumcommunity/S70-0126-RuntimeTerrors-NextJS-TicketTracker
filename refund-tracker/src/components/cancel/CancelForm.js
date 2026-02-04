@@ -11,25 +11,41 @@ export default function CancelForm() {
     const [reason, setReason] = useState('')
     const [amount, setAmount] = useState(500)
     const [loading, setLoading] = useState(false)
+    const [error, setError] = useState('')
 
     async function handleSubmit() {
         if (!ticketId || !operator || !reason) return
 
         setLoading(true)
+        setError('')
 
-        const res = await fetch('/api/refund', {
+        const res = await fetch('/api/cancel', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 ticketId,
                 operator,
-                platform: 'RedBus',
-                amount
+                platform: 'RED_BUS',
+                amount,
+                reason
             })
         })
 
-        const data = await res.json()
+        let data
+        try {
+            data = await res.json()
+        } catch {
+            setLoading(false)
+            setError('Server returned an invalid response')
+            return
+        }
+
         setLoading(false)
+
+        if (!res.ok) {
+            setError(data.error || 'Cancellation failed')
+            return
+        }
 
         if (data.refundId) {
             router.push(`/track/${data.refundId}`)
@@ -90,6 +106,10 @@ export default function CancelForm() {
                 <option value="DELAY">Bus Delayed</option>
                 <option value="OPERATOR_CANCEL">Operator Cancelled</option>
             </select>
+
+            {error && (
+                <p style={{ color: 'red', marginTop: 8 }}>{error}</p>
+            )}
 
             <button
                 onClick={handleSubmit}
