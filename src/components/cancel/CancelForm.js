@@ -1,55 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useFormState, useFormStatus } from 'react-dom'
 import { useRouter } from 'next/navigation'
+import { createRefund } from '@/app/actions/refund'
 
 export default function CancelForm() {
     const router = useRouter()
+    const [state, formAction] = useFormState(createRefund, { error: null, success: false })
 
-    const [ticketId, setTicketId] = useState('')
-    const [operator, setOperator] = useState('')
-    const [reason, setReason] = useState('')
-    const [amount, setAmount] = useState(500)
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState('')
-
-    async function handleSubmit() {
-        if (!ticketId || !operator || !reason) return
-
-        setLoading(true)
-        setError('')
-
-        const res = await fetch('/api/cancel', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                ticketId,
-                operator,
-                platform: 'RED_BUS',
-                amount,
-                reason
-            })
-        })
-
-        let data
-        try {
-            data = await res.json()
-        } catch {
-            setLoading(false)
-            setError('Server returned an invalid response')
-            return
-        }
-
-        setLoading(false)
-
-        if (!res.ok) {
-            setError(data.error || 'Cancellation failed')
-            return
-        }
-
-        if (data.refundId) {
-            router.push(`/track/${data.refundId}`)
-        }
+    // Redirect on success
+    if (state?.success && state?.refundId) {
+        router.push(`/track/${state.refundId}`)
     }
 
     return (
@@ -60,9 +21,9 @@ export default function CancelForm() {
             borderRadius: 12,
             padding: 32
         }}>
-            <h2 style={{ marginBottom: 8 }}>Simulate Ticket Cancellation</h2>
+            <h2 style={{ marginBottom: 8 }}>Raise New Ticket</h2>
             <p style={{ color: '#555', marginBottom: 20 }}>
-                Submit a test cancellation to see the accountability flow in action.
+                Submit a ticket to track the refund status or report an issue.
             </p>
 
             <div style={{
@@ -75,59 +36,72 @@ export default function CancelForm() {
                 This is a simulation environment. No real tickets or payments involved.
             </div>
 
-            <label>Ticket ID</label>
-            <input
-                value={ticketId}
-                onChange={e => setTicketId(e.target.value)}
-                placeholder="e.g. TKT-778899"
-                style={inputStyle}
-            />
+            <form action={formAction}>
+                <label>Ticket ID</label>
+                <input
+                    name="ticketId"
+                    placeholder="e.g. TKT-778899"
+                    style={inputStyle}
+                    required
+                />
 
-            <label>Operator</label>
-            <select
-                value={operator}
-                onChange={e => setOperator(e.target.value)}
-                style={inputStyle}
-            >
-                <option value="">Select bus operator</option>
-                <option value="KSRTC">KSRTC</option>
-                <option value="APSRTC">APSRTC</option>
-                <option value="Private">Private Operator</option>
-            </select>
+                <label>Operator</label>
+                <select
+                    name="operator"
+                    style={inputStyle}
+                    required
+                >
+                    <option value="">Select bus operator</option>
+                    <option value="KSRTC">KSRTC</option>
+                    <option value="APSRTC">APSRTC</option>
+                    <option value="Private">Private Operator</option>
+                </select>
 
-            <label>Reason</label>
-            <select
-                value={reason}
-                onChange={e => setReason(e.target.value)}
-                style={inputStyle}
-            >
-                <option value="">Select a reason</option>
-                <option value="USER_CANCEL">User Cancelled</option>
-                <option value="DELAY">Bus Delayed</option>
-                <option value="OPERATOR_CANCEL">Operator Cancelled</option>
-            </select>
+                <label>Reason</label>
+                <select
+                    name="reason"
+                    style={inputStyle}
+                    required
+                >
+                    <option value="">Select a reason</option>
+                    <option value="USER_CANCEL">User Cancelled</option>
+                    <option value="DELAY">Bus Delayed</option>
+                    <option value="OPERATOR_CANCEL">Operator Cancelled</option>
+                </select>
 
-            {error && (
-                <p style={{ color: 'red', marginTop: 8 }}>{error}</p>
-            )}
+                <input type="hidden" name="amount" value="500" />
 
-            <button
-                onClick={handleSubmit}
-                disabled={loading}
-                style={{
-                    marginTop: 20,
-                    width: '100%',
-                    padding: 14,
-                    borderRadius: 8,
-                    border: 'none',
-                    background: '#2563eb',
-                    color: '#fff',
-                    fontSize: 16
-                }}
-            >
-                {loading ? 'Processing...' : 'Initiate Simulation →'}
-            </button>
+                {state?.error && (
+                    <p style={{ color: 'red', marginTop: 8 }}>{state.error}</p>
+                )}
+
+                <SubmitButton />
+            </form>
         </div>
+    )
+}
+
+function SubmitButton() {
+    const { pending } = useFormStatus()
+    return (
+        <button
+            type="submit"
+            disabled={pending}
+            style={{
+                marginTop: 20,
+                width: '100%',
+                padding: 14,
+                borderRadius: 8,
+                border: 'none',
+                background: '#2563eb',
+                color: '#fff',
+                fontSize: 16,
+                cursor: pending ? 'not-allowed' : 'pointer',
+                opacity: pending ? 0.7 : 1
+            }}
+        >
+            {pending ? 'Processing...' : 'Submit Ticket →'}
+        </button>
     )
 }
 
