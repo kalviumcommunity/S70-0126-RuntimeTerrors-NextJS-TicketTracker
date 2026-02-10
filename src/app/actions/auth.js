@@ -44,12 +44,21 @@ export async function register(prevState, formData) {
 }
 
 export async function handleSignOut() {
-    // Clear cache to resolve "stuck" UI states
     revalidatePath('/');
 
-    // Force clear session cookies
-    cookies().delete('authjs.session-token');
-    cookies().delete('__Secure-authjs.session-token');
+    const cookieStore = cookies();
+    const cookieNames = [
+        'authjs.session-token',
+        '__Secure-authjs.session-token',
+        'next-auth.session-token',
+        '__Secure-next-auth.session-token'
+    ];
+
+    for (const name of cookieNames) {
+        cookieStore.delete(name);
+        // Force expire as a backup
+        cookieStore.set(name, '', { maxAge: 0, path: '/' });
+    }
 
     await signOut({ redirectTo: '/' });
 }
