@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { handleSignOut } from '@/app/actions/auth'
+import { SignOutButton } from '../auth/SignOutButton'
 
 export default function Navbar({ session }) {
   return (
@@ -41,16 +42,7 @@ export default function Navbar({ session }) {
           <>
             <span style={{ fontSize: '0.9rem' }}>{session.user.email}</span>
             <form action={handleSignOut}>
-              <button style={{
-                padding: '8px 14px',
-                borderRadius: 6,
-                border: 'none',
-                background: '#333',
-                color: '#fff',
-                cursor: 'pointer'
-              }}>
-                Sign Out
-              </button>
+              <SignOutButton />
             </form>
           </>
         ) : (
